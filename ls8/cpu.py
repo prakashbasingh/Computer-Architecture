@@ -7,8 +7,18 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
-
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
+    
+    def ram_read(self, MAR):
+        # MAR is Memory Address Register which is the address we want to read
+        return self.ram[MAR]
+    
+    def ram_write(self, MDR, MAR):
+        # MDR is Memory Data Register. it contains the data that we are reading or the data that we are going to write
+        self.ram[MAR] = MDR
+        
     def load(self):
         """Load a program into memory."""
 
@@ -62,4 +72,38 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        # storing instruction in variables LDI, PRN, HLT
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+        
+        # making running state to true to run the program
+        running = True
+
+        while running:
+            IR = self.ram[self.pc] # Instruction Register, copy of the currently-executing instruction
+            
+            if IR == HLT:
+               running = False
+               
+            elif IR == LDI:
+                # if IR is LDI which is 0b10000010 == 0, then set index number 1
+                reg_index = self.ram[self.pc + 1] # == opperand_a
+                # then set value at index 2
+                value = self.ram[self.pc + 2] # == opperand_b
+                # now register with the given index has the given value
+                self.reg[reg_index] = value
+                print(self.reg)
+                # now increment index with 3(coz used 3 bites at three indices) to go to the next instruction
+                self.pc += 3 
+                
+            elif IR == PRN:
+                # if the instruction is to print, print the value at +1 index
+                reg_index = self.ram[self.pc + 1]
+                print(self.reg[reg_index])
+                # increment the index by 2 to go to the next instruction
+                self.pc += 2
+                               
+            else:
+                print(f"unknown instruction {abcd}")
+        
