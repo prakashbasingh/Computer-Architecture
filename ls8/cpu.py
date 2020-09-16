@@ -149,9 +149,21 @@ class CPU:
                 
                 self.pc += 2
                 # print(self.ram)
-             
                 
-                               
+            elif IR == POP:
+                # Getting the register number to pop into
+                reg_num = self.ram[self.pc + 1]
+                # Getting the top of the stack address
+                top_of_stack_addr = self.reg[SP]
+                # Getting the value at the top of the stack
+                value = self.ram[top_of_stack_addr]
+                # Store the value in the register
+                self.reg[reg_num] = value
+                # incrementing the SP
+                self.reg[SP] += 1
+                
+                self.pc +=2
+              
             else:
                 print(f"unknown instruction {IR}")
                 sys.exit(3)
