@@ -88,19 +88,19 @@ class CPU:
                
             elif IR == LDI:
                 # if IR is LDI which is 0b10000010 == 0, then set index number 1
-                reg_index = self.ram[self.pc + 1] # == opperand_a
+                opperand_a = self.ram[self.pc + 1] # opperand_a == index
                 # then set value at index 2
-                value = self.ram[self.pc + 2] # == opperand_b
+                opperand_b = self.ram[self.pc + 2] # opperand_b == value
                 # now register with the given index has the given value
-                self.reg[reg_index] = value
+                self.reg[opperand_a] = opperand_b
                 print(self.reg)
                 # now increment index with 3(coz used 3 bites at three indices) to go to the next instruction
                 self.pc += 3 
                 
             elif IR == PRN:
                 # if the instruction is to print, print the value at +1 index
-                reg_index = self.ram[self.pc + 1]
-                print(self.reg[reg_index])
+                opperand_a = self.ram[self.pc + 1]
+                print(self.reg[opperand_a])
                 # increment the index by 2 to go to the next instruction
                 self.pc += 2
                                

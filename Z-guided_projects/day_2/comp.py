@@ -31,7 +31,7 @@ try:
 				continue
 
 			try:
-				n = int(n)
+				n = int(n) # for afternooon project we need to (n, base number "2")
 			except ValueError:
 				print(f"Invalid number '{n}'")
 				sys.exit(1)
