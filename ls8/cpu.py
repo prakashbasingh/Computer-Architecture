@@ -7,9 +7,10 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = [0] * 256
-        self.reg = [0] * 8
+        self.ram = [0] * 256 # ram = memory
+        self.reg = [0] * 8 # reg = registers
         self.pc = 0
+        
     
     def ram_read(self, MAR):
         # MAR is Memory Address Register which is the address we want to read
@@ -24,6 +25,8 @@ class CPU:
 
         if len(sys.argv) != 2:
             print(sys.argv)
+            print(sys.argv[0])
+            print(sys.argv[1])
             print("usage: ls8.py examples/filename")
             sys.exit(1)
 
@@ -89,7 +92,11 @@ class CPU:
         PRN = 0b01000111
         HLT = 0b00000001
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
         
+        SP = 7
+        self.reg[SP] = 0xF4
         # making running state to true to run the program
         running = True
 
@@ -108,7 +115,8 @@ class CPU:
                 # then set value at index 2
                 # now register with the given index has the given value
                 self.reg[opperand_a] = opperand_b
-                print(self.reg)
+                # print(self.reg)
+                
                 # now increment index with 3(coz used 3 bites at three indices) to go to the next instruction
                 self.pc += 3 
                 
@@ -127,8 +135,24 @@ class CPU:
                 # self.ram_write(product, opperand_a)
                 self.pc += 3
                 print(self.reg)
+            
+            elif IR == PUSH:
+                # Decrement the SP(stack pointer)
+                self.reg[SP] -= 1
+                # Getting register number to push 
+                reg_num = self.ram[self.pc + 1] # is equal to opperand_1
+                # Getting the value to push 
+                value = self.reg[reg_num]
+                #Copying the value to the SP address
+                top_of_stack_addr = self.reg[SP]
+                self.ram[top_of_stack_addr] = value
+                
+                self.pc += 2
+                # print(self.ram)
+             
+                
                                
             else:
-                print(f"unknown instruction {b}")
-                
-        
+                print(f"unknown instruction {IR}")
+                sys.exit(3)
+
