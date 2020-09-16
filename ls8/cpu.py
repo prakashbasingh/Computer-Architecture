@@ -22,31 +22,43 @@ class CPU:
     def load(self):
         """Load a program into memory."""
 
-        address = 0
+        if len(sys.argv) != 2:
+            print(sys.argv)
+            print("usage: ls8.py examples/filename")
+            sys.exit(1)
 
-        # For now, we've just hardcoded a program:
+        try:
+            address = 0
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+            with open(sys.argv[1]) as f:
+                for line in f:
+                    t = line.split('#')
+                    n = t[0].strip()
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+                    if n == '':
+                        continue
 
+                    try:
+                        n = int(n, 2) # for afternoon project we need to (n, base number "2")
+                    except ValueError:
+                        print(f"Invalid number '{n}'")
+                        sys.exit(1)
 
+                    self.ram[address] = n
+                    address += 1
+
+        except FileNotFoundError:
+            print(f"File not found: {sys.argv[1]}")
+            sys.exit(2)
+        
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+        elif op == "MULT":
+            self.reg[reg_a]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -68,7 +80,7 @@ class CPU:
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
 
-        print()
+        print(run)
 
     def run(self):
         """Run the CPU."""
@@ -76,21 +88,24 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         HLT = 0b00000001
+        MUL = 0b10100010
         
         # making running state to true to run the program
         running = True
 
         while running:
             IR = self.ram[self.pc] # Instruction Register, copy of the currently-executing instruction
+            # setting the index
+            opperand_a = self.ram[self.pc + 1] # == index
+            # setting the value in the index
+            opperand_b = self.ram[self.pc + 2] #  == value for the index
             
             if IR == HLT:
                running = False
                
             elif IR == LDI:
                 # if IR is LDI which is 0b10000010 == 0, then set index number 1
-                opperand_a = self.ram[self.pc + 1] # opperand_a == index
                 # then set value at index 2
-                opperand_b = self.ram[self.pc + 2] # opperand_b == value
                 # now register with the given index has the given value
                 self.reg[opperand_a] = opperand_b
                 print(self.reg)
@@ -99,11 +114,21 @@ class CPU:
                 
             elif IR == PRN:
                 # if the instruction is to print, print the value at +1 index
-                opperand_a = self.ram[self.pc + 1]
                 print(self.reg[opperand_a])
                 # increment the index by 2 to go to the next instruction
                 self.pc += 2
+            
+            elif IR == MUL:
+                product = self.reg[opperand_a] * self.reg[opperand_b]
+                # print(self.reg[opperand_a])
+                # print(self.reg[opperand_b])
+                self.reg[opperand_a] = product
+                # print(self.reg[opperand_a])
+                # self.ram_write(product, opperand_a)
+                self.pc += 3
+                print(self.reg)
                                
             else:
-                print(f"unknown instruction {abcd}")
+                print(f"unknown instruction {b}")
+                
         
