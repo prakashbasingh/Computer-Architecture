@@ -10,7 +10,19 @@ class CPU:
         self.ram = [0] * 256 # ram = memory
         self.reg = [0] * 8 # reg = registers
         self.pc = 0
+        self.LDI = 0b10000010
+        self.PRN = 0b01000111
+        self.HLT = 0b00000001
+        self.MUL = 0b10100010
+        self.PUSH = 0b01000101
+        self.POP = 0b01000110
         
+        self.SP = 7
+        self.reg[self.SP] = 0xF4
+        
+        self.CALL = 0b01010000
+        self.RET = 0b00010001
+        self.ADD = 0b10100000
     
     def ram_read(self, MAR):
         # MAR is Memory Address Register which is the address we want to read
@@ -84,21 +96,41 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print(run)
+             
 
     def run(self):
         """Run the CPU."""
         # storing instruction in variables LDI, PRN, HLT
-        LDI = 0b10000010
-        PRN = 0b01000111
-        HLT = 0b00000001
-        MUL = 0b10100010
-        PUSH = 0b01000101
-        POP = 0b01000110
+        # LDI = 0b10000010 #        \
+        # PRN = 0b01000111 #         \
+        # HLT = 0b00000001 #          \ 
+        # MUL = 0b10100010 #           all these moved to __int__ 
+        # PUSH = 0b01000101 #         /  
+        # POP = 0b01000110 #        /
         
-        SP = 7
-        self.reg[SP] = 0xF4
+        # SP = 7  #              /
+        # self.reg[SP] = 0xF4 #/
+        
         # making running state to true to run the program
         running = True
+        
+        def push_value(value):
+            # Decrement the SP
+            self.reg[self.SP] -= 1
+            
+            # Copy the value to the SP address
+            top_of_Stack_addr = self.reg[self.SP]
+            self.ram[top_of_Stack_addr] = value
+    
+        def pop_value():
+            # Getting the top of the stack address
+            top_of_stack_addr = self.reg[self.SP]
+            # Getting the value at the top of the stack
+            value = self.ram[top_of_stack_addr]
+            # incrementing the SP
+            self.reg[self.SP] += 1
+            
+            return value
 
         while running:
             IR = self.ram[self.pc] # Instruction Register, copy of the currently-executing instruction
@@ -107,10 +139,10 @@ class CPU:
             # setting the value in the index
             opperand_b = self.ram[self.pc + 2] #  == value for the index
             
-            if IR == HLT:
+            if IR == self.HLT:
                running = False
                
-            elif IR == LDI:
+            elif IR == self.LDI:
                 # if IR is LDI which is 0b10000010 == 0, then set index number 1
                 # then set value at index 2
                 # now register with the given index has the given value
@@ -120,13 +152,13 @@ class CPU:
                 # now increment index with 3(coz used 3 bites at three indices) to go to the next instruction
                 self.pc += 3 
                 
-            elif IR == PRN:
+            elif IR == self.PRN:
                 # if the instruction is to print, print the value at +1 index
                 print(self.reg[opperand_a])
                 # increment the index by 2 to go to the next instruction
                 self.pc += 2
             
-            elif IR == MUL:
+            elif IR == self.MUL:
                 product = self.reg[opperand_a] * self.reg[opperand_b]
                 # print(self.reg[opperand_a])
                 # print(self.reg[opperand_b])
@@ -134,35 +166,79 @@ class CPU:
                 # print(self.reg[opperand_a])
                 # self.ram_write(product, opperand_a)
                 self.pc += 3
-                print(self.reg)
+                # print(self.reg)
             
-            elif IR == PUSH:
-                # Decrement the SP(stack pointer)
-                self.reg[SP] -= 1
+            elif IR == self.PUSH:
+                # # Decrement the SP(stack pointer)
+                # self.reg[self.SP] -= 1
+                # # Getting register number to push 
+                # reg_num = self.ram[self.pc + 1] # is equal to opperand_a
+                # # Getting the value to push 
+                # value = self.reg[reg_num]
+                # #Copying the value to the SP address
+                # top_of_stack_addr = self.reg[self.SP]
+                # self.ram[top_of_stack_addr] = value
+                
+                # self.pc += 2
+                # # print(self.ram)
+                
+                # above can be written as below using helper function push_value
+                
                 # Getting register number to push 
-                reg_num = self.ram[self.pc + 1] # is equal to opperand_1
+                # opperand_a = self.ram[self.pc + 1] # is equal to opperand_a
                 # Getting the value to push 
-                value = self.reg[reg_num]
-                #Copying the value to the SP address
-                top_of_stack_addr = self.reg[SP]
-                self.ram[top_of_stack_addr] = value
-                
+                value = self.reg[opperand_a]
+                #using push_value helper function
+                push_value(value)
+
                 self.pc += 2
-                # print(self.ram)
+                # print(self.ram)                
                 
-            elif IR == POP:
+            elif IR == self.POP:
+                # # Getting the register number to pop into
+                # reg_num = self.ram[self.pc + 1]
+                # # Getting the top of the stack address
+                # top_of_stack_addr = self.reg[self.SP]
+                # # Getting the value at the top of the stack
+                # value = self.ram[top_of_stack_addr]         
+                # # Store the value in the register
+                # self.reg[reg_num] = value
+                # # incrementing the SP
+                # self.reg[self.SP] += 1
+                
+                # self.pc +=2
+                
+                # above can be written as below using helper function pop_value
+
                 # Getting the register number to pop into
-                reg_num = self.ram[self.pc + 1]
-                # Getting the top of the stack address
-                top_of_stack_addr = self.reg[SP]
+                # opperand_a = self.ram[self.pc + 1]
                 # Getting the value at the top of the stack
-                value = self.ram[top_of_stack_addr]
+                value = pop_value()         
                 # Store the value in the register
-                self.reg[reg_num] = value
-                # incrementing the SP
-                self.reg[SP] += 1
+                self.reg[opperand_a] = value
                 
                 self.pc +=2
+                
+            elif IR == self.ADD:
+                self.reg[opperand_a] += self.reg[opperand_b]
+               
+                self.pc += 2
+                
+            elif IR == self.CALL:
+                # # Compute the return addr 
+                # return_addr = self.pc + 2
+                # # Push return address on stack
+                # push_value(return_addr)
+                # # Get the value from the operand reg
+                # value = self.reg[opperand_a]
+                
+                # # set teh pc to that value
+                # self.pc = value
+                self.reg[self.SP] -= 1
+                self.ram[self.reg[self.SP]] = self.pc + 2
+                self.pc = self.reg[opperand_a]
+                
+                
               
             else:
                 print(f"unknown instruction {IR}")
