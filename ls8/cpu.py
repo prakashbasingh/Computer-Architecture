@@ -23,6 +23,10 @@ class CPU:
         self.CALL = 0b01010000
         self.RET = 0b00010001
         self.ADD = 0b10100000
+        
+        self.CMP = 0b10100111
+        self.JMP = 0b01010100
+        self.JEQ = 0b01010101
     
     def ram_read(self, MAR):
         # MAR is Memory Address Register which is the address we want to read
@@ -225,18 +229,42 @@ class CPU:
                 self.pc += 2
                 
             elif IR == self.CALL:
-                # # Compute the return addr 
-                # return_addr = self.pc + 2
-                # # Push return address on stack
-                # push_value(return_addr)
-                # # Get the value from the operand reg
-                # value = self.reg[opperand_a]
-                
-                # # set teh pc to that value
-                # self.pc = value
+                # trace()
+                # Compute the return addr 
+                return_addr = self.pc + 2
+                # Decrement the SP
                 self.reg[self.SP] -= 1
-                self.ram[self.reg[self.SP]] = self.pc + 2
-                self.pc = self.reg[opperand_a]
+                # Copy the top stack address to the SP address and setting it to the return address
+                top_of_Stack_addr = self.reg[self.SP]
+                self.ram[top_of_Stack_addr] = return_addr         
+                # Get the value from the operand reg
+                addr_to_go = self.reg[opperand_a]
+                # set the pc to the next stack address
+                self.pc = addr_to_go
+                # self.pc = self.reg[opperand_a]
+
+                # self.reg[self.SP] -= 1
+                # self.ram[self.reg[self.SP]] = self.pc + 2
+                # self.pc = self.reg[opperand_a]
+            
+            elif IR == self.RET:
+                # 
+                address_to_pop_from = self.reg[self.SP]
+                # 
+                return_addr = self.ram[address_to_pop_from]
+                # 
+                self.pc = return_addr
+                # Incrementing the stack pointer
+                self.reg[self.SP] += 1
+            
+            elif IR == self.CMP:
+                pass
+            
+            elif IR == self.JMP:
+                pass
+            
+            elif IR == self.JEQ:
+                pass
                 
                 
               
