@@ -231,8 +231,7 @@ class CPU:
                 self.pc +=2
                 
             elif IR == self.ADD:
-                self.alu("ADD", opperand_a, opperand_b)
-               
+                self.reg[opperand_a] += self.reg[opperand_b]
                 self.pc += 3
                 
             elif IR == self.CALL:
@@ -265,7 +264,13 @@ class CPU:
                 self.reg[self.SP] += 1
             
             elif IR == self.CMP:
-                self.alu("CMP", opperand_a, opperand_b)
+                if self.reg[opperand_a] == self.reg[opperand_b]:
+                    self.fl = 0b00000001
+                elif self.reg[opperand_a] > self.reg[opperand_b]:
+                    self.fl = 0b00000010
+                elif self.reg[opperand_a] < self.reg[opperand_b]:
+                    self.fl = 0b00000100
+                    
                 self.pc += 3
             
             elif IR == self.JMP:
@@ -273,12 +278,13 @@ class CPU:
                 self.pc = jump_address
             
             elif IR == self.JEQ:
-                if self.reg[self.fl] == True:
+                if self.fl == 0b00000001:
                     self.pc = self.reg[opperand_a]
-                else: 
+                else:
                     self.pc += 2
+
             elif IR == self.JNE:
-                if self.reg[self.fl] == False:
+                if self.fl != 0b00000001:
                     self.pc = self.reg[opperand_a]
                 else:
                     self.pc += 2
