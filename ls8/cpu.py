@@ -25,10 +25,18 @@ class CPU:
         self.ADD = 0b10100000
         
         self.CMP = 0b10100111
-        self.fl = 0b00000001
+        self.fl = 0b00000000
         self.JMP = 0b01010100
         self.JEQ = 0b01010101
         self.JNE = 0b01010110
+        
+        self.AND = 0b10100000
+        self.MOD = 0b10100100
+        self.NOT = 0b01101001
+        self.OR = 0b10101010
+        self.SHL = 0b10101100
+        self.SHR = 0b10101101
+        self.XOR = 0b10101011
     
     def ram_read(self, MAR):
         # MAR is Memory Address Register which is the address we want to read
@@ -288,7 +296,35 @@ class CPU:
                     self.pc = self.reg[opperand_a]
                 else:
                     self.pc += 2
-                  
+                
+            elif IR == self.MOD:
+                if reg[opperand_b] == 0:
+                    running = False
+                    print(f"can not divide by zero")
+                else: 
+                    self.reg[opperand_a] = self.reg[opperand_a] % self.reg[opperand_b]
+                    
+            elif IR == self.NOT:
+                if opperand_b == 0:
+                    self.reg[opperand_a] = ~self.reg[opperand_b]
+                self.pc += 2
+                
+            elif IR == self.OR:
+                self.reg[opperand_a] = self.reg[opperand_a] | self.reg[opperand_b]
+                self.pc += 3
+                
+            elif IR == self.SHL:
+                self.reg[opperand_a] = self.reg[opperand_a] << self.reg[opperand_b]
+                self.pc += 3
+                
+            elif IR == self.SHR:
+                self.reg[opperand_a] = self.reg[opperand_a] >> self.reg[opperand_b]
+                self.pc += 3
+                
+            elif IR == self.XOR:
+                self.reg[opperand_a] = self.reg[opperand_a] ^ self.reg[opperand_b]
+                self.pc += 3
+                
             else:
                 print(f"unknown instruction {IR}")
                 sys.exit(3)
