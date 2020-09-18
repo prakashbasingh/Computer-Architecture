@@ -25,8 +25,10 @@ class CPU:
         self.ADD = 0b10100000
         
         self.CMP = 0b10100111
+        self.fl = 0b00000001
         self.JMP = 0b01010100
         self.JEQ = 0b01010101
+        self.JNE = 0b01010110
     
     def ram_read(self, MAR):
         # MAR is Memory Address Register which is the address we want to read
@@ -76,8 +78,13 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
-        elif op == "MULT":
-            self.reg[reg_a]
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.reg[self.fl] = 0b00000001
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.reg[self.fl] = 0b00000010
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.reg[self.fl] = 0b00000100
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -224,19 +231,20 @@ class CPU:
                 self.pc +=2
                 
             elif IR == self.ADD:
-                self.reg[opperand_a] += self.reg[opperand_b]
+                self.alu("ADD", opperand_a, opperand_b)
                
-                self.pc += 2
+                self.pc += 3
                 
             elif IR == self.CALL:
-                # trace()
                 # Compute the return addr 
                 return_addr = self.pc + 2
                 # Decrement the SP
                 self.reg[self.SP] -= 1
                 # Copy the top stack address to the SP address and setting it to the return address
                 top_of_Stack_addr = self.reg[self.SP]
-                self.ram[top_of_Stack_addr] = return_addr         
+                self.ram[top_of_Stack_addr] = return_addr
+                
+                opperand_a = self.ram[self.pc + 1] # == index         
                 # Get the value from the operand reg
                 addr_to_go = self.reg[opperand_a]
                 # set the pc to the next stack address
@@ -248,27 +256,35 @@ class CPU:
                 # self.pc = self.reg[opperand_a]
             
             elif IR == self.RET:
-                # 
-                address_to_pop_from = self.reg[self.SP]
-                # 
-                return_addr = self.ram[address_to_pop_from]
-                # 
+                # Copy the top stack address to the SP address and setting it to the return address
+                top_of_Stack_addr = self.reg[self.SP]
+                self.ram[top_of_Stack_addr] = return_addr 
+                # set the pc to the return address 
                 self.pc = return_addr
                 # Incrementing the stack pointer
                 self.reg[self.SP] += 1
             
             elif IR == self.CMP:
-                pass
+                self.alu("CMP", opperand_a, opperand_b)
+                self.pc += 3
             
             elif IR == self.JMP:
-                pass
+                jump_address = self.reg[opperand_a]
+                self.pc = jump_address
             
             elif IR == self.JEQ:
-                pass
-                
-                
-              
+                if self.reg[self.fl] == True:
+                    self.pc = self.reg[opperand_a]
+                else: 
+                    self.pc += 2
+            elif IR == self.JNE:
+                if self.reg[self.fl] == False:
+                    self.pc = self.reg[opperand_a]
+                else:
+                    self.pc += 2
+                  
             else:
                 print(f"unknown instruction {IR}")
                 sys.exit(3)
+
 
